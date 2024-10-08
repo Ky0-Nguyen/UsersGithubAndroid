@@ -9,11 +9,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import com.androidgithubusers.R
-import com.androidgithubusers.data.UserDao
 import com.androidgithubusers.repository.UserRepository
 import com.androidgithubusers.viewmodel.UserViewModel
 import com.bumptech.glide.Glide
 
+/**
+ * UserDetailScreen is an Activity that displays detailed information about a GitHub user.
+ *
+ * This activity receives a user's login name via intent, fetches the user's details using
+ * a ViewModel, and displays the information in the UI. It includes the user's avatar,
+ * username, location, follower and following counts, and blog URL.
+ */
 class UserDetailScreen : AppCompatActivity() {
     private lateinit var userDetailViewModel: UserViewModel
 
@@ -33,6 +39,10 @@ class UserDetailScreen : AppCompatActivity() {
         // Hide user URL view
         views.userUrlView.visibility = View.GONE
 
+        // Show user location container
+        val userLocationContainer = findViewById<View>(R.id.user_location_container)
+        userLocationContainer.visibility = View.VISIBLE
+
         // Set up back button
         setupBackButton(views.backButton)
 
@@ -43,6 +53,9 @@ class UserDetailScreen : AppCompatActivity() {
         userDetailViewModel.getUserDetail(userLogin)
     }
 
+    /**
+     * Initializes the ViewModel used for fetching and storing user details.
+     */
     private fun initializeViewModel() {
         val repository = UserRepository(
             BaseAPI.api
@@ -51,6 +64,11 @@ class UserDetailScreen : AppCompatActivity() {
         userDetailViewModel = ViewModelProvider(this, viewModelFactory)[UserViewModel::class.java]
     }
 
+    /**
+     * Initializes and returns a Views object containing references to all UI elements.
+     *
+     * @return Views object with references to UI elements
+     */
     private fun initializeViews(): Views {
         val userInfoLayout = findViewById<ConstraintLayout>(R.id.userInfoLayout)
         return Views(
@@ -65,10 +83,20 @@ class UserDetailScreen : AppCompatActivity() {
         )
     }
 
+    /**
+     * Sets up the back button to finish the activity when clicked.
+     *
+     * @param backButton The ImageButton used as a back button
+     */
     private fun setupBackButton(backButton: ImageButton) {
         backButton.setOnClickListener { finish() }
     }
 
+    /**
+     * Observes changes in user detail data and updates the UI accordingly.
+     *
+     * @param views Views object containing references to UI elements
+     */
     private fun observeUserDetail(views: Views) {
         userDetailViewModel.userDetail.observe(this) { userDetail ->
             // Load avatar image
@@ -80,17 +108,23 @@ class UserDetailScreen : AppCompatActivity() {
             views.followingTextView.text = formatCount(userDetail.following, 10)
             views.locationTextView.text = userDetail.location ?: "Not specified"
             views.blogTextView.text = userDetail.blog.takeIf { it.isNotBlank() } ?: "No blog specified"
-
-            // TODO: Implement opening the user's GitHub profile in a web browser
-            // viewProfileButton.setOnClickListener { ... }
         }
     }
 
+    /**
+     * Formats a count for display, showing "100+" if the count exceeds the threshold.
+     *
+     * @param count The actual count
+     * @param threshold The threshold above which to display "100+"
+     * @return Formatted count as a string
+     */
     private fun formatCount(count: Int, threshold: Int): String {
         return if (count > threshold) "${threshold}+" else count.toString()
     }
 
-    // Data class to hold view references
+    /**
+     * Data class to hold view references for easy access and organization.
+     */
     private data class Views(
         val avatarImageView: ImageView,
         val usernameTextView: TextView,
